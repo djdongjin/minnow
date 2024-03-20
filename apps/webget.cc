@@ -3,14 +3,37 @@
 #include <cstdlib>
 #include <iostream>
 #include <span>
+#include <sstream>
 #include <string>
 
 using namespace std;
 
 void get_URL( const string& host, const string& path )
 {
-  cerr << "Function called: get_URL(" << host << ", " << path << ")\n";
-  cerr << "Warning: get_URL() has not been implemented yet.\n";
+  /* Format of a request:
+    GET /hello HTTP/1.1
+    Host: cs144.keithw.org
+    Connection: close
+
+    (notice the empty line after `Connection: close`)
+  */
+  stringstream request;
+  request << "GET " << path << " HTTP/1.1\r\n";
+  request << "Host: " << host << "\r\n";
+  // requires 2 `\r\n` to complete a request.
+  request << "Connection: close\r\n\r\n";
+
+  TCPSocket tcp;
+  Address addr( host, "http" );
+  tcp.connect( addr );
+
+  tcp.write( request.str() );
+
+  string buffer;
+  while ( !tcp.eof() ) {
+    tcp.read( buffer );
+    cout << buffer;
+  }
 }
 
 int main( int argc, char* argv[] )
